@@ -66,24 +66,41 @@ public class MultiChatController implements Runnable {
 				// 종료버튼, 로그인버튼, 로그아웃버튼, 메시지전송버튼(엔터) 처리
 				if (obj == v.exitButton) {
 					outMsg.println(gson.toJson(new Message(v.id, "", "", "logout")));
+
+					status = false;
+					
+					if (outMsg != null)
+						outMsg.close();
+					
+					try {
+						if (inMsg != null) {
+							inMsg.close();
+						}
+					} catch (IOException e1) {
+						logger.warning(Thread.currentThread().getName()+" Exception 발생!! inMsg.close()");
+						e1.printStackTrace();
+					}
 					
 					try {
 						if (socket != null)
 							socket.close();
-						Thread.sleep(100);
 					} catch (IOException e1) {
-						logger.warning("[MultiChatController] appMain() Exception 발생!! 1");
-						e1.printStackTrace();
-					} catch (InterruptedException e1) {
-						logger.warning("[MultiChatController] appMain() Exception 발생!! 2");
+						logger.warning(Thread.currentThread().getName()+" Exception 발생!! socket.close()");
 						e1.printStackTrace();
 					}
+					
+					try {
+						thread.join();
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+					
 					System.exit(0);
 				} else if (obj == v.loginButton) {
 					// 입력한 아이디를 가져와
 					String id = v.idInput.getText();
 					if(id == null || id.trim().equals("")) {
-						logger.warning("[MultiChatController] appMain() Exception 발생!! 2");
+						logger.warning("[MultiChatController]"+Thread.currentThread().getName()+" Exception 발생!! 2");
 						return;
 					}
 					v.id = id.trim();
@@ -112,19 +129,20 @@ public class MultiChatController implements Runnable {
 					if (outMsg != null)
 						outMsg.close();
 					
-//					try {
-//						if (inMsg != null)
-//							inMsg.close();
-//					} catch (IOException e1) {
-//						logger.log(WARNING, "[MultiChatController]connectServer() Exception 발생!! (입력스트림 닫기)");
-//						e1.printStackTrace();
-//					}
-//					
+					try {
+						if (inMsg != null) {
+							inMsg.close();
+						}
+					} catch (IOException e1) {
+						logger.warning(Thread.currentThread().getName()+" Exception 발생!! inMsg.close()");
+						e1.printStackTrace();
+					}
+					
 					try {
 						if (socket != null)
 							socket.close();
 					} catch (IOException e1) {
-						logger.warning("[MultiChatController] appMain() Exception 발생!!");
+						logger.warning(Thread.currentThread().getName()+" Exception 발생!! socket.close()");
 						e1.printStackTrace();
 					}
 
@@ -150,7 +168,7 @@ public class MultiChatController implements Runnable {
 			socket = new Socket(ip, 8888); 
 			
 			// INFO 레벨 로깅 (서버 연결에 성공했다는 메시지 화면에 출력)
-			logger.info("[MultiChatController]connectServer() 서버 연결에 성공했다. ");
+			logger.info(Thread.currentThread().getName()+" 서버 연결에 성공했다. ");
 			
 			// 입출력(inMsg, outMsg) 스트림 생성
 			inMsg = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -163,7 +181,7 @@ public class MultiChatController implements Runnable {
 			thread = new Thread(this, "Thread-ChatDataRefresher");
 			thread.start();
 		} catch (Exception e) {
-			logger.log(WARNING, "[MultiChatController]connectServer() Exception 발생!!");
+			logger.warning(Thread.currentThread().getName()+" Exception 발생!!");
 			e.printStackTrace();
 		}
 	}
@@ -174,7 +192,7 @@ public class MultiChatController implements Runnable {
 	 */
 	public void run() {
 		// 수신 메시지 처리를 위한 변수
-		logger.info("[MultiChatController] 메시지 스트림 시작!!");
+		logger.info(Thread.currentThread().getName()+ " 메시지 스트림 시작!!");
 		String msg;
 
 		// status 업데이트
@@ -194,11 +212,11 @@ public class MultiChatController implements Runnable {
 				// 커서를 현재 대화 메시지에 보여줌
 				v.msgOut.setCaretPosition(v.msgOut.getDocument().getLength());
 			} catch (IOException e) {
-				logger.log(WARNING, "[MultiChatController] 메시지 스트림 종료!!");
+				logger.warning(Thread.currentThread().getName() + " 메시지 스트림 종료!!");
 			}
 		}
 		
-		logger.info("[MultiChatController]" + thread.getName() + " 메시지 수신 스레드 종료됨!!");
+		logger.info(Thread.currentThread().getName() + " 메시지 수신 스레드 종료됨!!");
 	}
 
 	// 프로그램 시작을 위한 메인 메서드
