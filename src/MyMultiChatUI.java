@@ -3,7 +3,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import javax.swing.*;
 
-public class MultiChatUI extends JFrame{
+public class MyMultiChatUI extends JFrame{
 
     // 로그인 패널
     private JPanel loginPanel;
@@ -42,7 +42,7 @@ public class MultiChatUI extends JFrame{
     
     // 생성자
     
-    public MultiChatUI() {
+    public MyMultiChatUI() {
 
     	// constant for the size of UI components
     	final int WIDTH = 600;
